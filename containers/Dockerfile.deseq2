@@ -1,0 +1,5 @@
+FROM bioconductor/bioconductor_docker:RELEASE_3_18
+
+RUN R -e "BiocManager::install(c('tximport','DESeq2','ggplot2'), update=FALSE, ask=FALSE)"
+
+WORKDIR /data

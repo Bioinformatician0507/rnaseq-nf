@@ -2,6 +2,7 @@ include { FASTQC       } from './modules/fastqc'
 include { FASTP        } from './modules/fastp'
 include { SALMON_INDEX } from './modules/salmon_index'
 include { SALMON_QUANT } from './modules/salmon_quant'
+include { DESEQ2       } from './modules/deseq2'
 
 workflow {
     if (!params.input) {
@@ -26,7 +27,19 @@ workflow {
     )
 
     SALMON_QUANT(
-        FASTP.out.reads.map { meta, reads -> [meta, reads] },
+        FASTP.out.reads,
         SALMON_INDEX.out.index
     )
+
+    if (params.metadata) {
+        ch_quant_dirs = SALMON_QUANT.out.results
+            .map { meta, dir -> dir }
+            .collect()
+
+        DESEQ2(
+            ch_quant_dirs,
+            file(params.metadata),
+            file(params.gtf)
+        )
+    }
 }
