@@ -1,5 +1,7 @@
-include { FASTQC } from './modules/fastqc'
-include { FASTP  } from './modules/fastp'
+include { FASTQC       } from './modules/fastqc'
+include { FASTP        } from './modules/fastp'
+include { SALMON_INDEX } from './modules/salmon_index'
+include { SALMON_QUANT } from './modules/salmon_quant'
 
 workflow {
     if (!params.input) {
@@ -17,4 +19,14 @@ workflow {
 
     FASTQC(ch_reads)
     FASTP(ch_reads)
+
+    SALMON_INDEX(
+        file(params.transcript_fasta),
+        file(params.fasta)
+    )
+
+    SALMON_QUANT(
+        FASTP.out.reads.map { meta, reads -> [meta, reads] },
+        SALMON_INDEX.out.index
+    )
 }
