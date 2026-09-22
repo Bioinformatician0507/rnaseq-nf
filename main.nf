@@ -3,6 +3,7 @@ include { FASTP        } from './modules/fastp'
 include { SALMON_INDEX } from './modules/salmon_index'
 include { SALMON_QUANT } from './modules/salmon_quant'
 include { DESEQ2       } from './modules/deseq2'
+include { MULTIQC      } from './modules/multiqc'
 
 workflow {
     if (!params.input) {
@@ -42,4 +43,12 @@ workflow {
             file(params.gtf)
         )
     }
+
+    ch_multiqc_files = FASTQC.out.zip
+        .map { meta, zip -> zip }
+        .mix(FASTP.out.json.map { meta, json -> json })
+        .mix(SALMON_QUANT.out.results.map { meta, dir -> dir })
+        .collect()
+
+    MULTIQC(ch_multiqc_files)
 }
